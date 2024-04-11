@@ -30,6 +30,45 @@ agent any
                 sh 'docker login -u $DOCKER_ID -p $DOCKER_PASS'
                 sh 'docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:$DOCKER_TAG && docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:latest'
             }
-        }    
+        }
+        stage('Deploy EKS') {
+            environment { // import Jenkin global variables 
+                //KUBECONFIG = credentials("EKS_CONFIG")  
+                AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+                AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+                AWSREGION = "eu-west-3"
+                EKSCLUSTERNAME = credentials('EKS_CLUSTER')
+            }
+            steps {
+                script {
+                    sh 'rm -Rf .kube'
+                    sh 'mkdir .kube'
+                    sh 'touch .kube/config'
+                    sh 'chmod 777 .kube/config'
+                    sh 'rm -Rf .aws'
+                    sh 'mkdir .aws'
+                    sh 'aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID'
+                    sh 'aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY'
+                    sh 'aws configure set region $AWSREGION'
+                    sh 'aws eks update-kubeconfig --name $EKSCLUSTERNAME --region $AWSREGION --kubeconfig .kube/config'
+                    // Check if the namespace exists
+                        def namespaceExists = sh(script: "kubectl get namespace \$NAMESPACE", returnStatus: true)
+                        if (namespaceExists == 0) {
+                            echo "Namespace \$NAMESPACE already exists."
+                        } else {
+                            // Create the namespace
+                            sh 'kubectl create namespace \$NAMESPACE'
+                            echo "Namespace \$NAMESPACE created."
+                        }
+                    
+                    sh 'kubectl apply -f ./manifests -n $NAMESPACE --kubeconfig .kube/config'
+                    
+                    sh 'aws configure set output text'
+                    sh 'aws eks list-clusters'
+                    sh 'kubectl config view'
+                    sh 'kubectl cluster-info --kubeconfig .kube/config'                
+                }
+            } 
+        }            
     }
 }
