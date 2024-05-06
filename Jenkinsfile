@@ -31,7 +31,7 @@ agent any
                 sh 'docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:$DOCKER_TAG && docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:latest'
             }
         }
-        stage('Deploy EKS') {
+        /*stage('Deploy EKS') {
             environment { // import Jenkin global variables 
                 //KUBECONFIG = credentials("EKS_CONFIG")  
                 AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
@@ -69,6 +69,6 @@ agent any
                     sh 'kubectl cluster-info --kubeconfig .kube/config'                
                 }
             } 
-        }            
+        } */           
     }
 }
