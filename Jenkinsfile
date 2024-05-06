@@ -31,7 +31,7 @@ agent any
                 sh 'docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:$DOCKER_TAG && docker push $DOCKER_ID/$DOCKER_IMAGE_RABBITMQ:latest'
             }
         }
-        /*stage('Deploy EKS') {
+        stage('Deploy EKS') {
             environment { // import Jenkin global variables 
                 //KUBECONFIG = credentials("EKS_CONFIG")  
                 AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
@@ -51,7 +51,7 @@ agent any
                     sh 'aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY'
                     sh 'aws configure set region $AWSREGION'
                     sh 'aws eks update-kubeconfig --name $EKSCLUSTERNAME --region $AWSREGION --kubeconfig .kube/config'
-                    // Check if the namespace exists
+                    /*// Check if the namespace exists
                         def namespaceExists = sh(script: "kubectl get namespace \$NAMESPACE", returnStatus: true)
                         if (namespaceExists == 0) {
                             echo "Namespace \$NAMESPACE already exists."
@@ -60,7 +60,7 @@ agent any
                             sh 'kubectl create namespace \$NAMESPACE'
                             echo "Namespace \$NAMESPACE created."
                         }
-                    
+                    */
                     sh 'kubectl apply -f ./manifests -n $NAMESPACE --kubeconfig .kube/config'
                     
                     sh 'aws configure set output text'
@@ -69,6 +69,6 @@ agent any
                     sh 'kubectl cluster-info --kubeconfig .kube/config'                
                 }
             } 
-        } */           
+        }           
     }
 }
